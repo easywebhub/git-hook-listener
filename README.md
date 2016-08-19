@@ -18,6 +18,7 @@
     - go to "local-project" execute "git clone https://USERNAME:PASSWORD@github.com/user/project-name.git user_project-name"
     
 - Go to github, gitlab or your git server admin page add webhook url: http[s]://HOST:PORT/HOOK_PATH and SECRET
+    - e.g. http://192.168.1.1:18000/web-hook
     - HOST: git-hook-listener server ip or domain
     - PORT: 18000 or your changed port
     
