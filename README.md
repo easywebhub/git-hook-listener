@@ -16,6 +16,7 @@
   - example use: auto call git pull on local repository on push event of remote git server
     - create local folder "local-project" inside "git-hook-listener" folder
     - go to "local-project" execute "git clone https://USERNAME:PASSWORD@github.com/user/project-name.git user_project-name"
+      - this mean git will store username and password in config file inside ".git" folder so later pull command will not ask for credential
     
 - Go to github, gitlab or your git server admin page add webhook url: http[s]://HOST:PORT/HOOK_PATH and SECRET
     - e.g. http://192.168.1.1:18000/web-hook
