@@ -23,11 +23,11 @@ process.on('uncaughtException', err => {
 
 /**
  * getRepoKey(pushEvent)
- * key is :hostname/:username/:projectName
+ * key is github_com_:username_:projectName (dot replaced with '_' )
  * @param {any} pushEvent
  * @returns
  */
-function getReposKey(pushEvent) {
+function getRepoKey(pushEvent) {
     try {
         if (pushEvent.payload.project) {
             // gitlab "path_with_namespace":"mike/diaspora",
@@ -50,7 +50,7 @@ function genRepoFolderName(repoKey) {
 }
 
 function getPushBranch(event) {
-    return event.ref.split('/').pop();
+    return event.payload.ref.split('/').pop();
 }
 
 function isFolderExists(localPath) {
@@ -83,7 +83,7 @@ function SpawnShell(command, args, opts) {
 
         newProcess.stdout.on('data', function (data) {
             let str = String.fromCharCode.apply(null, data);
-            console.log('stdout', str);
+            //console.log('stdout', str);
         });
 
         newProcess.stderr.on('data', function (data) {
@@ -143,17 +143,16 @@ handler.on('push', function (event) {
     let branch = getPushBranch(event);
     let repoConfig = config.repositories[repoKey];
 
-    let handler = pushHandlers[repoKey];
-    if (!handler) {
-        console.log(`no handler for repos: ${event.payload.repository.name}`);
+    if (!repoConfig) {
+        console.log(`no config for repos: ${event.payload.repository.name}`);
+        return;
+    }
+
+    if (branch !== repoConfig.branch) {
+        console.log(`repo ${event.payload.repository.name}, repoConfig branch "${repoConfig.branch}"" not match with push event branch "${branch}", do nothing`);
         return;
     }
     let repoFolderName = genRepoFolderName(repoKey);
-    // call handler
-    console.log('gitCloneOrPullBranch');
-    console.log('repositoryUrl', repoConfig.repositoryUrl);
-    console.log('branch', repoConfig.branch);
-    console.log('dataPath', path.join(config.dataPath, repoFolderName));
 
     gitCloneOrPullBranch(repoConfig.repositoryUrl, repoConfig.branch, path.join(config.dataPath, repoFolderName));
 })
