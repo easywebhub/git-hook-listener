@@ -23,7 +23,7 @@ process.on('uncaughtException', err => {
 
 /**
  * getRepoKey(pushEvent)
- * key is github_com_:username_:projectName (dot replaced with '_' )
+ * key is github.com/:username/:projectName
  * @param {any} pushEvent
  * @returns
  */
@@ -44,6 +44,7 @@ function getRepoKey(pushEvent) {
     }
 }
 
+// github_com_:username_:projectName
 function genRepoFolderName(repoKey) {
     repoKey = repoKey.replace(/\./g, '_');
     return repoKey.replace(/\//g, '_');
