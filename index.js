@@ -1,87 +1,159 @@
 'use strict';
 
-// single hook path for many repos
-
-const HOST = '0.0.0.0';
-const PORT = 18000;
-const HOOK_PATH = '/web-hook';
-const SECRET = 'bay gio da biet';
-
+const fs = require('fs');
 const http = require('http');
+const url = require('url');
 const path = require('path');
+// const mkdirp = require('mkdirp');
 const spawn = require('child_process').spawn;
+const Promise = require('bluebird');
+const ChildProcess = require('child_process');
+const fse = require('fs-extra');
+const rimrafAsync = Promise.promisify(require('rimraf'));
 const createHandler = require('github-webhook-handler');
-const handler = createHandler({ path: HOOK_PATH, secret: SECRET });
+const config = require('./config.js');
+const handler = createHandler({ path: config.hookPath, secret: config.secret });
 
 process.on('uncaughtException', err => {
-  console.log(err);
+    console.log(err);
 });
 
 // gitlab payload https://gitlab.com/gitlab-org/gitlab-ce/blob/master/doc/web_hooks/web_hooks.md
 // github payload https://developer.github.com/v3/activity/events/types/#pushevent
 
-function getReposKey(event) {
-  try {
-    if (event.payload.project) {
-      // gitlab "path_with_namespace":"mike/diaspora",
-      return event.payload.project['path_with_namespace'];
-    } else {
-      // github "full_name": "baxterthehacker/public-repo",
-      return event.payload.repository['full_name'];
+/**
+ * getRepoKey(pushEvent)
+ * key is :hostname/:username/:projectName
+ * @param {any} pushEvent
+ * @returns
+ */
+function getReposKey(pushEvent) {
+    try {
+        if (pushEvent.payload.project) {
+            // gitlab "path_with_namespace":"mike/diaspora",
+            let hostname = url.parse(pushEvent.payload.project['web_url']).hostname;
+            return `${hostname}/${pushEvent.payload.project['path_with_namespace']}`;
+        } else {
+            // github "full_name": "baxterthehacker/public-repo",
+            let hostname = url.parse(pushEvent.payload.repository['html_url']).hostname;
+            return `${hostname}/${pushEvent.payload.repository['full_name']}`;
+        }
+    } catch (ex) {
+        console.log('not supported push payload', pushEvent);
+        return '';
     }
-  } catch (ex) {
-    console.log('not supported push payload', event);
-    return '';
-  }
 }
 
-// TODO load config from json ?
-const pushHandlers = {
-  'nemesisqp/test-gh2': (key, event) => {
-    // do whatever you want
-    // e.g. call git pull in ./local-project/test-gh2
-    // NOTICE git permission (https://USERNAME:PASSWORD@) or GIT_SSH_COMMAND='ssh -i private_key_file' git clone host:repo.git if use ssh
-    // notice cwd dir must exists or weird error will happend
-    const childProcess = spawn('git', ['pull', 'origin', 'master'], {
-      cwd: path.join(__dirname, 'local-project', 'nemesisqp_test-gh2'),
-      shell: true,
-      env: process.env
-    });
+function genRepoFolderName(repoKey) {
+    repoKey = repoKey.replace(/\./g, '_');
+    return repoKey.replace(/\//g, '_');
+}
 
-    childProcess.stdout.on('data', (data) => {
-      console.log(`repos handler ${key} stdout: ${data}`);
-    });
+function getPushBranch(event) {
+    return event.ref.split('/').pop();
+}
 
-    childProcess.stderr.on('data', (data) => {
-      console.log(`repos handler ${key} stderr: ${data}`);
-    });
+function isFolderExists(localPath) {
+    try {
+        let stat = fs.statSync(localPath);
+        return stat.isDirectory();
+    } catch (_) {
+        return false;
+    }
+}
 
-    childProcess.on('close', (code) => {
-      console.log(`repos handler ${key} child process exited with code ${code}`);
+function SpawnShell(command, args, opts) {
+    opts = opts || {};
+    return new Promise((resolve, reject) => {
+        let out = '';
+        let stdErr = '';
+
+        let env = opts.env || {};
+        env.GIT_SSL_NO_VERIFY = true; // bug ssl ca store not found
+
+        let newProcess = ChildProcess.spawn(command, args, {
+            env: env,
+            cwd: opts.cwd || {},
+            shell: true
+        });
+
+        newProcess.on('error', function (err) {
+            reject(err);
+        });
+
+        newProcess.stdout.on('data', function (data) {
+            let str = String.fromCharCode.apply(null, data);
+            console.log('stdout', str);
+        });
+
+        newProcess.stderr.on('data', function (data) {
+            let str = String.fromCharCode.apply(null, data);
+            stdErr += str;
+        });
+
+        newProcess.on('exit', (code) => {
+            if (code === 0) {
+                resolve(out);
+            } else {
+                reject(new Error(stdErr));
+            }
+        });
     });
-  }
+}
+
+function gitCloneOrPullBranch(repoUrl, branch, repoLocalDir) {
+    let doGitCloneBranch = function () {
+        repoLocalDir = path.resolve(repoLocalDir);
+        let gitFolderPath = path.join(repoLocalDir, '.git');
+        let opts = { cwd: repoLocalDir + path.sep };
+        if (isFolderExists(gitFolderPath)) {
+            // if exists call git pull
+            console.log('git pull');
+            return SpawnShell('git', ['pull'], opts);
+        } else {
+            // if .git folder not exists delete all file and folder
+            fse.removeSync(repoLocalDir);
+            fs.mkdir(repoLocalDir);
+            console.log('clone branch');
+            return SpawnShell('git', ['clone', '-b', branch, '--single-branch', repoUrl, '.'], opts);
+        }
+    };
+
+    if (isFolderExists(repoLocalDir) === false)
+        fse.mkdirpSync(repoLocalDir);
+
+    return doGitCloneBranch();
 }
 
 const server = http.createServer((req, res) => {
-  handler(req, res, function (err) {
-    res.statusCode = 404;
-    res.end('no such location');
-  })
-}).listen(PORT, HOST, () => {
-  console.log(`git hook listener server listening on ${HOST}:${PORT}`);
+    handler(req, res, function (err) {
+        res.statusCode = 404;
+        res.end('no such location');
+    })
+}).listen(config.port, config.host, () => {
+    console.log(`git hook listener server listening on ${config.host}:${config.port}`);
 });
 
 handler.on('error', function (err) {
-  console.error('Error:', err.message);
+    console.error('Error:', err.message);
 })
 
 handler.on('push', function (event) {
-  let key = getReposKey(event);
-  let handler = pushHandlers[key];
-  if (!handler) {
-    console.log(`no handler for repos: ${event.payload.repository.name}`);
-    return;
-  }
-  // call handler
-  handler(key, event);
+    let repoKey = getRepoKey(event);
+    let branch = getPushBranch(event);
+    let repoConfig = config.repositories[repoKey];
+
+    let handler = pushHandlers[repoKey];
+    if (!handler) {
+        console.log(`no handler for repos: ${event.payload.repository.name}`);
+        return;
+    }
+    let repoFolderName = genRepoFolderName(repoKey);
+    // call handler
+    console.log('gitCloneOrPullBranch');
+    console.log('repositoryUrl', repoConfig.repositoryUrl);
+    console.log('branch', repoConfig.branch);
+    console.log('dataPath', path.join(config.dataPath, repoFolderName));
+
+    gitCloneOrPullBranch(repoConfig.repositoryUrl, repoConfig.branch, path.join(config.dataPath, repoFolderName));
 })
