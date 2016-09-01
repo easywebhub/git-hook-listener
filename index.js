@@ -114,7 +114,7 @@ function gitCloneOrPullBranch(repoUrl, branch, repoLocalDir) {
         } else {
             // if .git folder not exists delete all file and folder
             fse.removeSync(repoLocalDir);
-            fs.mkdir(repoLocalDir);
+            fs.mkdirSync(repoLocalDir);
             console.log('clone branch');
             return SpawnShell('git', ['clone', '-b', branch, '--single-branch', repoUrl, '.'], opts);
         }
