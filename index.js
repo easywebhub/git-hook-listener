@@ -109,13 +109,13 @@ function gitCloneOrPullBranch(repoUrl, branch, repoLocalDir) {
         let opts = { cwd: repoLocalDir + path.sep };
         if (isFolderExists(gitFolderPath)) {
             // if exists call git pull
-            console.log('git pull');
+            console.log('pull', repoUrl, branch);
             return SpawnShell('git', ['pull'], opts);
         } else {
             // if .git folder not exists delete all file and folder
             fse.removeSync(repoLocalDir);
             fs.mkdirSync(repoLocalDir);
-            console.log('clone branch');
+            console.log('clone', repoUrl, branch);
             return SpawnShell('git', ['clone', '-b', branch, '--single-branch', repoUrl, '.'], opts);
         }
     };
