@@ -69,7 +69,7 @@ function SpawnShell(command, args, opts) {
         let out = '';
         let stdErr = '';
 
-        let env = opts.env || {};
+        let env = process.env;
         env.GIT_SSL_NO_VERIFY = true; // bug ssl ca store not found
 
         let newProcess = ChildProcess.spawn(command, args, {
@@ -135,11 +135,11 @@ const server = http.createServer((req, res) => {
     console.log(`git hook listener server listening on ${config.host}:${config.port}`);
 });
 
-handler.on('error', function (err) {
+handler.on('error', err => {
     console.error('Error:', err.message);
 })
 
-handler.on('push', function (event) {
+handler.on('push', event => {
     let repoKey = getRepoKey(event);
     let branch = getPushBranch(event);
     let repoConfig = config.repositories[repoKey];
@@ -155,5 +155,11 @@ handler.on('push', function (event) {
     }
     let repoFolderName = genRepoFolderName(repoKey);
 
-    gitCloneOrPullBranch(repoConfig.repositoryUrl, repoConfig.branch, path.join(config.dataPath, repoFolderName));
+    gitCloneOrPullBranch(
+        repoConfig.repositoryUrl,
+        repoConfig.branch,
+        path.join(config.dataPath, repoFolderName)
+    ).catch(ex => {
+        console.log('git error', ex)
+    });
 })
