@@ -109,13 +109,13 @@ function gitCloneOrPullBranch(repoUrl, branch, repoLocalDir) {
         let opts = { cwd: repoLocalDir + path.sep };
         if (isFolderExists(gitFolderPath)) {
             // if exists call git pull
-            console.log('pull', repoUrl, branch);
+            console.log('pull', repoUrl, branch, 'to', repoLocalDir);
             return SpawnShell('git', ['pull'], opts);
         } else {
             // if .git folder not exists delete all file and folder
             fse.removeSync(repoLocalDir);
             fs.mkdirSync(repoLocalDir);
-            console.log('clone', repoUrl, branch);
+            console.log('clone', repoUrl, branch, 'to', repoLocalDir);
             return SpawnShell('git', ['clone', '-b', branch, '--single-branch', repoUrl, '.'], opts);
         }
     };
@@ -155,10 +155,14 @@ handler.on('push', event => {
     }
     let repoFolderName = genRepoFolderName(repoKey);
 
+    let dataPath = repoConfig.dataPath;
+    if (!dataPath)
+        dataPath = path.join(config.dataPath, repoFolderName);    
+
     gitCloneOrPullBranch(
         repoConfig.repositoryUrl,
         repoConfig.branch,
-        path.join(config.dataPath, repoFolderName)
+        dataPath
     ).catch(ex => {
         console.log('git error', ex)
     });

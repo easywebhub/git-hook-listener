@@ -9,7 +9,8 @@ module.exports = {
     repositories: {
         'github.com/nemesisqp/test-gh2': {
             repositoryUrl: 'https://github.com/nemesisqp/test-gh2.git',
-            branch: 'gh-pages'
+            branch: 'gh-pages',
+            dataPath: 'bbb'
         }
     }
 };
