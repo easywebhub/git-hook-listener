@@ -10,7 +10,7 @@ const Promise = require('bluebird');
 const ChildProcess = require('child_process');
 const fse = require('fs-extra');
 const rimrafAsync = Promise.promisify(require('rimraf'));
-const createHandler = require('github-webhook-handler');
+const createHandler = require('./github-webhook-handler/index.js');
 const config = require('./config.js');
 const handler = createHandler({ path: config.hookPath, secret: config.secret });
 
@@ -140,6 +140,7 @@ handler.on('error', err => {
 })
 
 handler.on('push', event => {
+    console.log('on push');
     let repoKey = getRepoKey(event);
     let branch = getPushBranch(event);
     let repoConfig = config.repositories[repoKey];

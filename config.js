@@ -11,6 +11,11 @@ module.exports = {
             repositoryUrl: 'https://github.com/nemesisqp/test-gh2.git',
             branch: 'gh-pages',
             dataPath: 'bbb'
+        },
+        'gitlab.com/ndqphuong/test-web-hook': {
+            repositoryUrl: 'https://ndqphuong:Ccc5rzQR2H-s7FfSyzxj@gitlab.com/ndqphuong/test-web-hook.git',
+            branch: 'master',
+            dataPath: 'ccc'
         }
     }
 };
