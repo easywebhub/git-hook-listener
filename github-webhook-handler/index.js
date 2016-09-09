@@ -48,7 +48,7 @@ function create(options) {
       handler.emit('error', err, req)
       callback(err)
     }
-    console.log('HEADERS', req.headers);
+    
     var sig = req.headers['x-hub-signature']
     var token = req.headers['x-gitlab-token'];
     var event = req.headers['x-github-event'] || req.headers['x-gitlab-event'];
@@ -90,7 +90,7 @@ function create(options) {
       } catch (e) {
         return hasError(e)
       }
-      console.log('data', obj);
+      
       res.writeHead(200, { 'content-type': 'application/json' })
       res.end('{"ok":true}')
 
