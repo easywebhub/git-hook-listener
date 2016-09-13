@@ -15,9 +15,9 @@
   + Set up Nginx, Apache, ... on Linux
   
 
-### How to setup `config.js`, [link](https://github.com/easywebhub/git-hook-listener/blob/master/config.js):
-- Open firewall port 18000 or change PORT config to opened port
-  - Ubuntu: ```sudo ufw allow 1800/tcp```,  ```sudo ufw enable```
+## How to setup [`config.js`](https://github.com/easywebhub/git-hook-listener/blob/master/config.js):
+- Open firewall port 4567 or change PORT config to opened port
+  - Ubuntu: ```sudo ufw allow 4567/tcp```,  ```sudo ufw enable```
 - Hook listener server:
   - edit index.js change path and secret to your need
     ```
