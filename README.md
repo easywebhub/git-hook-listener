@@ -24,7 +24,7 @@ module.exports = {
     port: 4567,
     hookPath: '/web-hook',
     secret: 'bay gio da biet',
-    dataPath: 'repositories',
+    dataPath: 'websites',
     repositories: {
         'github.com/nemesisqp/test-gh2': {
             repositoryUrl: 'https://github.com/nemesisqp/test-gh2.git',
@@ -34,14 +34,16 @@ module.exports = {
     }
 };
 ```
+### Prepare a deployed server
 - Open port 4567 (or your own port) on Deployed Server
   - Windows: open on Firewall
   - Ubuntu: ```sudo ufw allow 4567/tcp```,  ```sudo ufw enable```
 - Edit common fields
   - `secret` value to pair between Deployed Server và Git Server (github, gitlab,...) 
   - `dataPath` : path to save deployed source
-- Edit value for each repo
-  
+
+### Add and config a new repository
+  - Add new setting to `repositories`, e.g
 ```
 'github.com/nemesisqp/test-gh2': {
             repositoryUrl: 'https://github.com/nemesisqp/test-gh2.git',
