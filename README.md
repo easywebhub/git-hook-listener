@@ -1,16 +1,17 @@
 # How to push to Deploy 
 
 ## Steps
-### Prepare a deployed server
+### 1.Prepare a deployed server
   + Use NodeJS to run this repo with below config
   + modify `port`, `secret`, `dataPath` on `config.js`
   + verify the operation with a sample repo
-### Add a repo to public
+  
+### 2.Add a repo to public
   + Add `web-hook` on the Setting of this repo and verify
   + Add new repository setting on `config.js` on deployed server
   + verify the deployed folder exists after pushed
   
-### Create domain point to deploy server
+### 3.Create domain point to deploy server
   + Set up IIS website on Windows
   + Set up Nginx, Apache, ... on Linux
   
