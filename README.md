@@ -6,8 +6,9 @@
   + modify `port`, `secret`, `dataPath` on `config.js`
   + verify the operation with a sample repo
   
-### 2.Add a repo to public
-  + Add `web-hook` on the Setting of this repo and verify
+### 2.Add a repo to 'push-to-deploy'
+  + Add a Web Hook on the Setting of this repo and verify
+    - e.g. http://192.168.1.1:4567/web-hook
   + Add new repository setting on `config.js` on deployed server
   + verify the deployed folder exists after pushed
   
@@ -17,28 +18,35 @@
   
 
 ## How to setup [`config.js`](https://github.com/easywebhub/git-hook-listener/blob/master/config.js):
-- Open firewall port 4567 or change PORT config to opened port
+```
+module.exports = {
+    host: '0.0.0.0',
+    port: 4567,
+    hookPath: '/web-hook',
+    secret: 'bay gio da biet',
+    dataPath: 'repositories',
+    repositories: {
+        'github.com/nemesisqp/test-gh2': {
+            repositoryUrl: 'https://github.com/nemesisqp/test-gh2.git',
+            branch: 'gh-pages',
+            dataPath: 'otherPath'
+        }
+    }
+};
+```
+- Open port 4567 (or your own port) on Deployed Server
+  - Windows: open on Firewall
   - Ubuntu: ```sudo ufw allow 4567/tcp```,  ```sudo ufw enable```
-- Hook listener server:
-  - edit index.js change path and secret to your need
-    ```
-    const HOOK_PATH = '/web-hook';
-    const SECRET = 'bay gio da biet';
-    ```
-  - add handler for each repository (notice key format 'nemesisqp/test-gh2') 
-     ```
-    const pushHandlers = {
-    'nemesisqp/test-gh2': (key, event) => {
-        // do whatever you want, call external .bat .sh file, or execute any js code
-    ```
-  - example use: auto call git pull on local repository on push event of remote git server
-    - create local folder "local-project" inside "git-hook-listener" folder
-    - go to "local-project" execute "git clone https://USERNAME:PASSWORD@github.com/user/project-name.git user_project-name"
-      - this mean git will store username and password in config file inside ".git" folder so later pull command will not ask for credential
-    
-- Go to github, gitlab or your git server admin page add webhook url: http[s]://HOST:PORT/HOOK_PATH and SECRET
-    - e.g. http://192.168.1.1:18000/web-hook
-    - HOST: git-hook-listener server ip or domain
-    - PORT: 18000 or your changed port
-    
-- Done, any push on git server will call your handler code. 
+- Edit common fields
+  - `secret` value to pair between Deployed Server và Git Server (github, gitlab,...) 
+  - `dataPath` : path to save deployed source
+- Edit value for each repo
+  
+```
+'github.com/nemesisqp/test-gh2': {
+            repositoryUrl: 'https://github.com/nemesisqp/test-gh2.git',
+            branch: 'gh-pages',
+            dataPath: 'otherPath'
+        }
+```
+  - `'github.com/nemesisqp/test-gh2'` referenced from `repositoryUrl`
