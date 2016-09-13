@@ -1,6 +1,6 @@
 # How to push to Deploy 
 
-## Steps
+## Steps to do
 ### 1.Prepare a deployed server
   + Use NodeJS to run this repo with below config
   + modify `port`, `secret`, `dataPath` on `config.js`
@@ -50,3 +50,4 @@ module.exports = {
         }
 ```
   - `'github.com/nemesisqp/test-gh2'` referenced from `repositoryUrl`
+  - `dataPath`: specific path for this repo
