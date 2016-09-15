@@ -2,7 +2,7 @@
 
 ## Steps to do
 ### 1.Prepare a deployed server, see [more](#prepare-a-deployed-server)
-  + Install NodeJS and Git
+  + Install [NodeJS](https://nodejs.org/en/download/) and [Git](https://git-scm.com/downloads) corresponding to current OS
   + Use NodeJS to run this repo with below config
   + modify `port`, `secret`, `dataPath` on `config.js`
   + verify the operation with a sample repo
