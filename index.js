@@ -5,11 +5,10 @@ const http = require('http');
 const url = require('url');
 const path = require('path');
 // const mkdirp = require('mkdirp');
-const spawn = require('child_process').spawn;
 const Promise = require('bluebird');
 const ChildProcess = require('child_process');
 const fse = require('fs-extra');
-const rimrafAsync = Promise.promisify(require('rimraf'));
+// const rimrafAsync = Promise.promisify(require('rimraf'));
 const createHandler = require('./github-webhook-handler/index.js');
 const config = require('./config.js');
 const handler = createHandler({ path: config.hookPath, secret: config.secret });
@@ -46,8 +45,9 @@ function getRepoKey(pushEvent) {
 
 // github_com_:username_:projectName
 function genRepoFolderName(repoKey) {
-    repoKey = repoKey.replace(/\./g, '_');
-    return repoKey.replace(/\//g, '_');
+    let rpk = repoKey;
+    rpk = rpk.replace(/\./g, '_');
+    return rpk.replace(/\//g, '_');
 }
 
 function getPushBranch(event) {
