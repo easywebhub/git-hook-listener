@@ -2,12 +2,10 @@
 
 const http = require('http');
 const path = require('path');
-// const mkdirp = require('mkdirp');
 const Promise = require('bluebird');
-const fs = Promise.promisifyAll(require('fs'));
 const ChildProcess = require('child_process');
+const fs = require('fs');
 const fse = require('fs-extra');
-// const rimrafAsync = Promise.promisify(require('rimraf'));
 const createHandler = require('./github-webhook-handler/index.js');
 const config = require('./config.js');
 const handler = createHandler({
@@ -168,7 +166,7 @@ handler.on('push', event => {
             repoConfig.branch,
             dataPath
         ).then(rs => {
-            console.log('end=>: ', rs)
+            console.log('END: ', rs)
         })
         .catch(ex => {
             console.log('git error', ex)
