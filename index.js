@@ -1,17 +1,20 @@
 'use strict';
 
-const fs = require('fs');
 const http = require('http');
 const url = require('url');
 const path = require('path');
 // const mkdirp = require('mkdirp');
 const Promise = require('bluebird');
+const fs = Promise.promisifyAll(require('fs'));
 const ChildProcess = require('child_process');
 const fse = require('fs-extra');
 // const rimrafAsync = Promise.promisify(require('rimraf'));
 const createHandler = require('./github-webhook-handler/index.js');
 const config = require('./config.js');
-const handler = createHandler({ path: config.hookPath, secret: config.secret });
+const handler = createHandler({
+    path: config.hookPath,
+    secret: config.secret
+});
 
 process.on('uncaughtException', err => {
     console.log(err);
@@ -20,7 +23,7 @@ process.on('uncaughtException', err => {
 // gitlab payload https://gitlab.com/gitlab-org/gitlab-ce/blob/master/doc/web_hooks/web_hooks.md
 // github payload https://developer.github.com/v3/activity/events/types/#pushevent
 
-/**
+/*
  * getRepoKey(pushEvent)
  * key is github.com/:username/:projectName
  * @param {any} pushEvent
@@ -56,21 +59,22 @@ function getPushBranch(event) {
 
 function isFolderExists(localPath) {
     try {
-        let stat = fs.statSync(localPath);
+        let stat = fs.fstatSync(localPath);
         return stat.isDirectory();
-    } catch (_) {
+    } catch (ex) {
         return false;
     }
 }
 
-function SpawnShell(command, args, opts) {
+function spawnShell(command, args, opts) {
     opts = opts || {};
     return new Promise((resolve, reject) => {
         let out = '';
         let stdErr = '';
 
         let env = process.env;
-        env.GIT_SSL_NO_VERIFY = true; // bug ssl ca store not found
+        // bug ssl ca store not found
+        env.GIT_SSL_NO_VERIFY = true;
 
         let newProcess = ChildProcess.spawn(command, args, {
             env: env,
@@ -84,7 +88,7 @@ function SpawnShell(command, args, opts) {
 
         newProcess.stdout.on('data', function (data) {
             let str = String.fromCharCode.apply(null, data);
-            //console.log('stdout', str);
+            console.log('stdout', str);
         });
 
         newProcess.stderr.on('data', function (data) {
@@ -103,20 +107,22 @@ function SpawnShell(command, args, opts) {
 }
 
 function gitCloneOrPullBranch(repoUrl, branch, repoLocalDir) {
-    let doGitCloneBranch = function () {
-        repoLocalDir = path.resolve(repoLocalDir);
+    let doGitCloneBranch = () => {
+        let repoLocalDir = path.resolve(repoLocalDir);
         let gitFolderPath = path.join(repoLocalDir, '.git');
-        let opts = { cwd: repoLocalDir + path.sep };
+        let opts = {
+            cwd: repoLocalDir + path.sep
+        };
         if (isFolderExists(gitFolderPath)) {
             // if exists call git pull
             console.log('pull', repoUrl, branch, 'to', repoLocalDir);
-            return SpawnShell('git', ['pull'], opts);
+            return Promise.resolve(spawnShell('git', ['pull'], opts));
         } else {
             // if .git folder not exists delete all file and folder
             fse.removeSync(repoLocalDir);
             fs.mkdirSync(repoLocalDir);
             console.log('clone', repoUrl, branch, 'to', repoLocalDir);
-            return SpawnShell('git', ['clone', '-b', branch, '--single-branch', repoUrl, '.'], opts);
+            return Promise.resolve(spawnShell('git', ['clone', '-b', branch, '--single-branch', repoUrl, '.'], opts));
         }
     };
 
@@ -158,7 +164,7 @@ handler.on('push', event => {
 
     let dataPath = repoConfig.dataPath;
     if (!dataPath)
-        dataPath = path.join(config.dataPath, repoFolderName);    
+        dataPath = path.join(config.dataPath, repoFolderName);
 
     gitCloneOrPullBranch(
         repoConfig.repositoryUrl,
