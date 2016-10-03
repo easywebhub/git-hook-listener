@@ -59,9 +59,9 @@ function getPushBranch(event) {
 
 function isFolderExists(localPath) {
     try {
-        let stat = fs.fstatSync(localPath);
+        let stat = fs.statSync(localPath);
         return stat.isDirectory();
-    } catch (ex) {
+    } catch (_) {
         return false;
     }
 }
@@ -82,55 +82,57 @@ function spawnShell(command, args, opts) {
             shell: true
         });
 
-        newProcess.on('error', function (err) {
+        newProcess.on('error', err => {
             reject(err);
         });
 
-        newProcess.stdout.on('data', function (data) {
-            let str = String.fromCharCode.apply(null, data);
-            console.log('stdout', str);
+        newProcess.stdout.on('data', data => {
+            out += `${data}`
         });
 
-        newProcess.stderr.on('data', function (data) {
-            let str = String.fromCharCode.apply(null, data);
-            stdErr += str;
+        newProcess.stderr.on('data', data => {
+            stdErr += `${data}`
         });
 
-        newProcess.on('exit', (code) => {
+        newProcess.on('close', (code) => {
+            console.log('close code shell ', code);
+            //to-do check flow ...
             if (code === 0) {
                 resolve(out);
             } else {
-                reject(new Error(stdErr));
+                reject(stdErr);
             }
         });
     });
 }
 
-function gitCloneOrPullBranch(repoUrl, branch, repoLocalDir) {
-    let doGitCloneBranch = () => {
-        let repoLocalDir = path.resolve(repoLocalDir);
-        let gitFolderPath = path.join(repoLocalDir, '.git');
-        let opts = {
-            cwd: repoLocalDir + path.sep
-        };
-        if (isFolderExists(gitFolderPath)) {
-            // if exists call git pull
-            console.log('pull', repoUrl, branch, 'to', repoLocalDir);
-            return Promise.resolve(spawnShell('git', ['pull'], opts));
-        } else {
-            // if .git folder not exists delete all file and folder
-            fse.removeSync(repoLocalDir);
-            fs.mkdirSync(repoLocalDir);
-            console.log('clone', repoUrl, branch, 'to', repoLocalDir);
-            return Promise.resolve(spawnShell('git', ['clone', '-b', branch, '--single-branch', repoUrl, '.'], opts));
-        }
+function doGitCloneBranch(repoUrl, branch, repoLocalDirs) {
+    let repoLocalDir = path.resolve(repoLocalDirs);
+    let gitFolderPath = path.join(repoLocalDir, '.git');
+    let opts = {
+        cwd: repoLocalDir + path.sep
     };
+    if (isFolderExists(repoLocalDir)) {
+        // if exists call git pull
+        console.log('pull', repoUrl, branch, 'to', repoLocalDir);
+        return Promise.resolve(spawnShell('git', ['pull'], opts));
+    } else {
+        // if .git folder not exists delete all file and folder
+        fse.removeSync(repoLocalDir);
+        fs.mkdirSync(repoLocalDir);
+        console.log('clone', repoUrl, branch, 'to', repoLocalDir);
+        return Promise.resolve(spawnShell('git', ['clone', '-b', branch, '--single-branch', repoUrl, '.'], opts));
+    }
+};
 
-    if (isFolderExists(repoLocalDir) === false)
-        fse.mkdirpSync(repoLocalDir);
+function gitCloneOrPullBranch(repoUrl, branch, repoLocalDirs) {
+    console.log(repoLocalDirs);
+    if (isFolderExists(repoLocalDirs) === false)
+        fse.mkdirpSync(repoLocalDirs);
 
-    return doGitCloneBranch();
+    return Promise.resolve(doGitCloneBranch(repoUrl, branch, repoLocalDirs));
 }
+
 
 const server = http.createServer((req, res) => {
     handler(req, res, function (err) {
@@ -162,15 +164,19 @@ handler.on('push', event => {
     }
     let repoFolderName = genRepoFolderName(repoKey);
 
-    let dataPath = repoConfig.dataPath;
+    let dataPath = repoConfig.dataPath || '';
     if (!dataPath)
         dataPath = path.join(config.dataPath, repoFolderName);
 
     gitCloneOrPullBranch(
-        repoConfig.repositoryUrl,
-        repoConfig.branch,
-        dataPath
-    ).catch(ex => {
-        console.log('git error', ex)
-    });
+            repoConfig.repositoryUrl,
+            repoConfig.branch,
+            dataPath
+        ).then(rs => {
+            console.log('end=>: ', rs)
+        })
+        .catch(ex => {
+            console.log('git error', ex)
+        });
+
 })
