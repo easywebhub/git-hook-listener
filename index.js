@@ -1,7 +1,6 @@
 'use strict';
 
 const http = require('http');
-const url = require('url');
 const path = require('path');
 // const mkdirp = require('mkdirp');
 const Promise = require('bluebird');
@@ -29,17 +28,19 @@ process.on('uncaughtException', err => {
  * @param {any} pushEvent
  * @returns path of repo or ||
  */
+function getPushBranch(event) {
+    return event.payload.ref.split('/').pop();
+}
+
 function getRepoKey(pushEvent) {
     try {
         let nameSpace = '';
         let branch = getPushBranch(pushEvent);
         if (pushEvent.payload.project) {
-            // gitlab "path_with_namespace":"mike/diaspora",
-            //let hostname = url.parse(pushEvent.payload.project['web_url']).hostname;
+
             nameSpace = `${pushEvent.payload.project['path_with_namespace']}`;
         } else {
-            // github "full_name": "baxterthehacker/public-repo",
-            //let hostname = url.parse(pushEvent.payload.repository['html_url']).hostname;
+
             nameSpace = `${pushEvent.payload.repository['full_name']}`;
         }
         let repoPath = Object.keys(config.repositories).filter(key => config.repositories[key].repositoryUrl.indexOf(nameSpace) !== -1 && config.repositories[key].branch === branch);
@@ -48,17 +49,6 @@ function getRepoKey(pushEvent) {
         console.log('not supported push payload', pushEvent);
         return '';
     }
-}
-
-// github_com_:username_:projectName
-function genRepoFolderName(repoKey) {
-    let rpk = repoKey;
-    rpk = rpk.replace(/\./g, '_');
-    return rpk.replace(/\//g, '_');
-}
-
-function getPushBranch(event) {
-    return event.payload.ref.split('/').pop();
 }
 
 function isFolderExists(localPath) {
@@ -100,7 +90,7 @@ function spawnShell(command, args, opts) {
 
         newProcess.on('close', (code) => {
             console.log('close code shell ', code);
-                resolve(out);
+            resolve(out);
         });
     });
 }
