@@ -16,6 +16,14 @@ module.exports = {
             repositoryUrl: 'https://ndqphuong:Ccc5rzQR2H-s7FfSyzxj@gitlab.com/ndqphuong/test-web-hook.git',
             branch: 'master',
             dataPath: 'ccc'
+        },
+        'test-ptd': {
+            repositoryUrl: 'http://gitlab.vienthonga.com/phamthanhtung/test-ptd.git',
+            branch: 'master'
+        },
+        'test-ptd-demo': {
+            repositoryUrl: 'http://gitlab.vienthonga.com/phamthanhtung/test-ptd.git',
+            branch: 'demo'
         }
     }
-};
+}

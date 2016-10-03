@@ -27,19 +27,23 @@ process.on('uncaughtException', err => {
  * getRepoKey(pushEvent)
  * key is github.com/:username/:projectName
  * @param {any} pushEvent
- * @returns
+ * @returns path of repo or ||
  */
 function getRepoKey(pushEvent) {
     try {
+        let nameSpace = '';
+        let branch = getPushBranch(pushEvent);
         if (pushEvent.payload.project) {
             // gitlab "path_with_namespace":"mike/diaspora",
-            let hostname = url.parse(pushEvent.payload.project['web_url']).hostname;
-            return `${hostname}/${pushEvent.payload.project['path_with_namespace']}`;
+            //let hostname = url.parse(pushEvent.payload.project['web_url']).hostname;
+            nameSpace = `${pushEvent.payload.project['path_with_namespace']}`;
         } else {
             // github "full_name": "baxterthehacker/public-repo",
-            let hostname = url.parse(pushEvent.payload.repository['html_url']).hostname;
-            return `${hostname}/${pushEvent.payload.repository['full_name']}`;
+            //let hostname = url.parse(pushEvent.payload.repository['html_url']).hostname;
+            nameSpace = `${pushEvent.payload.repository['full_name']}`;
         }
+        let repoPath = Object.keys(config.repositories).filter(key => config.repositories[key].repositoryUrl.indexOf(nameSpace) !== -1 && config.repositories[key].branch === branch);
+        return repoPath.shift() || '';
     } catch (ex) {
         console.log('not supported push payload', pushEvent);
         return '';
@@ -77,7 +81,7 @@ function spawnShell(command, args, opts) {
         env.GIT_SSL_NO_VERIFY = true;
 
         let newProcess = ChildProcess.spawn(command, args, {
-            env: env,
+            env,
             cwd: opts.cwd || {},
             shell: true
         });
@@ -96,23 +100,21 @@ function spawnShell(command, args, opts) {
 
         newProcess.on('close', (code) => {
             console.log('close code shell ', code);
-            //to-do check flow ...
-            if (code === 0) {
                 resolve(out);
-            } else {
-                reject(stdErr);
-            }
         });
     });
 }
 
 function doGitCloneBranch(repoUrl, branch, repoLocalDirs) {
     let repoLocalDir = path.resolve(repoLocalDirs);
+
+    //check exist the repo
     let gitFolderPath = path.join(repoLocalDir, '.git');
     let opts = {
         cwd: repoLocalDir + path.sep
     };
-    if (isFolderExists(repoLocalDir)) {
+
+    if (isFolderExists(gitFolderPath)) {
         // if exists call git pull
         console.log('pull', repoUrl, branch, 'to', repoLocalDir);
         return Promise.resolve(spawnShell('git', ['pull'], opts));
@@ -123,7 +125,7 @@ function doGitCloneBranch(repoUrl, branch, repoLocalDirs) {
         console.log('clone', repoUrl, branch, 'to', repoLocalDir);
         return Promise.resolve(spawnShell('git', ['clone', '-b', branch, '--single-branch', repoUrl, '.'], opts));
     }
-};
+}
 
 function gitCloneOrPullBranch(repoUrl, branch, repoLocalDirs) {
     console.log(repoLocalDirs);
@@ -150,9 +152,12 @@ handler.on('error', err => {
 handler.on('push', event => {
     console.log('on push');
     let repoKey = getRepoKey(event);
+    if (!repoKey) {
+        console.log('not found repo');
+        return;
+    }
     let branch = getPushBranch(event);
     let repoConfig = config.repositories[repoKey];
-
     if (!repoConfig) {
         console.log(`no config for repos: ${event.payload.repository.name}`);
         return;
@@ -162,11 +167,11 @@ handler.on('push', event => {
         console.log(`repo ${event.payload.repository.name}, repoConfig branch "${repoConfig.branch}"" not match with push event branch "${branch}", do nothing`);
         return;
     }
-    let repoFolderName = genRepoFolderName(repoKey);
+    //let repoFolderName = genRepoFolderName(repoKey);
 
     let dataPath = repoConfig.dataPath || '';
     if (!dataPath)
-        dataPath = path.join(config.dataPath, repoFolderName);
+        dataPath = path.join(config.dataPath, repoKey);
 
     gitCloneOrPullBranch(
             repoConfig.repositoryUrl,
