@@ -150,7 +150,7 @@ handler.on('error', err => {
 })
 
 handler.on('push', event => {
-    console.log('on push');
+    console.log(`ON PUSH ${new Date()}`);
     let repoKey = getRepoKey(event);
     if (!repoKey) {
         console.log('not found repo');
