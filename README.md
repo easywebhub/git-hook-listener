@@ -27,10 +27,10 @@ module.exports = {
     secret: 'bay gio da biet',
     dataPath: 'websites',
     repositories: {
-        'github.com/nemesisqp/test-gh2': {
+        'testGhPages': {
             repositoryUrl: 'https://github.com/nemesisqp/test-gh2.git',
             branch: 'gh-pages',
-            dataPath: 'otherPath'
+            dataPath: 'otherPath' // optional
         }
     }
 };
@@ -46,11 +46,8 @@ module.exports = {
 ### Add and config a new repository
   - Add new setting to `repositories`, e.g
 ```
-'github.com/nemesisqp/test-gh2': {
+'testOtherBranch': {
             repositoryUrl: 'https://github.com/nemesisqp/test-gh2.git',
-            branch: 'gh-pages',
-            dataPath: 'otherPath'
+            branch: 'otherBranch'
         }
 ```
-  - `'github.com/nemesisqp/test-gh2'` referenced from `repositoryUrl`
-  - `dataPath`: specific path for this repo
