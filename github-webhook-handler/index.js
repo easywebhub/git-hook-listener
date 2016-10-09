@@ -1,8 +1,8 @@
-const EventEmitter = require('events').EventEmitter
-  , inherits = require('util').inherits
-  , crypto = require('crypto')
-  , bl = require('bl')
-  , bufferEq = require('buffer-equal-constant-time')
+const EventEmitter = require('events').EventEmitter,
+  inherits = require('util').inherits,
+  crypto = require('crypto'),
+  bl = require('bl'),
+  bufferEq = require('buffer-equal-constant-time')
 
 
 function signBlob(key, blob) {
@@ -40,18 +40,22 @@ function create(options) {
       return callback()
 
     function hasError(msg) {
-      res.writeHead(400, { 'content-type': 'application/json' })
-      res.end(JSON.stringify({ error: msg }))
+      res.writeHead(400, {
+        'content-type': 'application/json'
+      })
+      res.end(JSON.stringify({
+        error: msg
+      }))
 
       var err = new Error(msg)
 
       handler.emit('error', err, req)
       callback(err)
     }
-    
-    var sig = req.headers['x-hub-signature']
+
+    var sig = req.headers['x-hub-signature'];
     var token = req.headers['x-gitlab-token'];
-    var event = req.headers['x-github-event'] || req.headers['x-gitlab-event'];
+    var event = req.headers['x-github-event'] || req.headers['x-gitlab-event'] || req.headers['x-gogs-event'];
     var id = req.headers['x-github-delivery'];
 
     //if (!sig)
@@ -90,21 +94,23 @@ function create(options) {
       } catch (e) {
         return hasError(e)
       }
-      
-      res.writeHead(200, { 'content-type': 'application/json' })
+
+      res.writeHead(200, {
+        'content-type': 'application/json'
+      })
       res.end('{"ok":true}')
 
-      if(req.headers['x-gitlab-event']) {
+      if (req.headers['x-gitlab-event']) {
         event = obj['event_name'];
       }
 
       var emitData = {
-        event: event
-        , id: id
-        , payload: obj
-        , protocol: req.protocol
-        , host: req.headers['host']
-        , url: req.url
+        event: event,
+        id: id,
+        payload: obj,
+        protocol: req.protocol,
+        host: req.headers['host'],
+        url: req.url
       }
 
       handler.emit(event, emitData)

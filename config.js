@@ -21,9 +21,9 @@ module.exports = {
             repositoryUrl: 'http://gitlab.vienthonga.com/phamthanhtung/test-ptd.git',
             branch: 'master'
         },
-        'test-ptd-demo': {
-            repositoryUrl: 'http://gitlab.vienthonga.com/phamthanhtung/test-ptd.git',
-            branch: 'demo'
+        'test': {
+            repositoryUrl: 'http://git.easywebhub.com/tungptvn/test.git',
+            branch: 'master'
         }
     }
 }
