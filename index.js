@@ -6,6 +6,10 @@ const Promise = require('bluebird');
 const ChildProcess = require('child_process');
 const fs = require('fs');
 const fse = require('fs-extra');
+var express = require('express')
+var bodyParser = require('body-parser')
+
+
 const createHandler = require('./github-webhook-handler/index.js');
 const config = require('./config.js');
 const handler = createHandler({
@@ -128,15 +132,26 @@ function gitCloneOrPullBranch(repoUrl, branch, repoLocalDirs) {
     return Promise.resolve(doGitCloneBranch(repoUrl, branch, repoLocalDirs));
 }
 
-http.createServer((req, res) => {
+var app = express()
+
+app.use(bodyParser.urlencoded({ extended: false }))
+app.use(bodyParser.json())
+
+
+app.post('/web-hook', function (req, res, err) {
+    req;
     handler(req, res, function (err) {
+        console.log(req.body);
         if (err) {
             console.log(err);
         }
         res.statusCode = 404;
         res.end('no such location');
     })
-}).listen(config.port, config.host, () => {
+});
+
+app.listen(config.port, function () {
+
     console.log(`git hook listener server listening on ${config.host}:${config.port}`);
 });
 

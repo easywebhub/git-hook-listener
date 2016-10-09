@@ -55,6 +55,7 @@ function create(options) {
 
     var sig = req.headers['x-hub-signature'];
     var token = req.headers['x-gitlab-token'];
+    var gogsSecret = req['body']['secret'];
     var event = req.headers['x-github-event'] || req.headers['x-gitlab-event'] || req.headers['x-gogs-event'];
     var id = req.headers['x-github-delivery'];
 
@@ -69,8 +70,10 @@ function create(options) {
 
     if (events && events.indexOf(event) == -1)
       return hasError('X-Github-Event is not acceptable')
-
+    
+    req;
     req.pipe(bl(function (err, data) {
+      
       if (err) {
         return hasError(err.message)
       }
@@ -81,18 +84,28 @@ function create(options) {
 
         if (!bufferEq(new Buffer(sig), computedSig))
           return hasError('X-Hub-Signature does not match blob signature')
-      } else if (token) {
-        if (options.secret !== token)
-          return hasError('X-Gitlab-Token does not match')
-      } else {
-        return hasError('missing options.secret')
       }
+      else
+        if (token) {
+          if (options.secret !== token)
+            return hasError('X-Gitlab-Token does not match')
+        }
+        else
+          if (gogsSecret) {
+            if (options.secret !== gogsSecret) {
+              return hasError('X-Gogs-Secret does not match')
+            }
+          }
+          else {
+            return hasError('missing options.secret')
+          }
 
 
       try {
-        obj = JSON.parse(data.toString())
+        obj = JSON.parse(data)
       } catch (e) {
-        return hasError(e)
+
+        //return hasError(e)
       }
 
       res.writeHead(200, {
