@@ -7,10 +7,9 @@ module.exports = {
     secret: 'bay gio da biet',
     dataPath: 'repositories',
     repositories: {
-        'github.com/nemesisqp/test-gh2': {
-            repositoryUrl: 'https://github.com/nemesisqp/test-gh2.git',
-            branch: 'gh-pages',
-            dataPath: 'bbb'
+        'test-github': {
+            repositoryUrl: 'https://github.com/tungptvn/test-push-to-deploy.git',
+            branch: 'master'
         },
         'gitlab.com/ndqphuong/test-web-hook': {
             repositoryUrl: 'https://ndqphuong:Ccc5rzQR2H-s7FfSyzxj@gitlab.com/ndqphuong/test-web-hook.git',
