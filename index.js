@@ -8,8 +8,6 @@ const fs = require('fs');
 const fse = require('fs-extra');
 var express = require('express');
 var bodyParser = require('body-parser');
-var githubMdw = require("./middlewares/github-signature");
-
 const createHandler = require('./github-webhook-handler/index.js');
 
 const config = require('./config.js');
@@ -52,7 +50,7 @@ function getRepoKey(pushEvent) {
 
             nameSpace = `${pushEvent.payload.repository['full_name']}`;
         }
-        let repoPath = Object.keys(config.repositories).filter(key => config.repositories[key].repositoryUrl.indexOf(nameSpace) !== -1 && config.repositories[key].branch === branch);
+        let repoPath = Object.keys(config.repositories).filter(key => config.repositories[key].repositoryUrl.split('/').pop().split('.').shift()  == nameSpace.split('/').pop()   && config.repositories[key].branch === branch);
         return repoPath.shift() || '';
     } catch (ex) {
         console.log('not supported push payload', pushEvent);
@@ -93,10 +91,10 @@ function spawnShell(command, args, opts) {
             out += `${data}`
         });
 
-        newProcess.stderr.on('data', data => {
-            stdErr += `${data}`;
-            reject(stdErr);
-        });
+        // newProcess.stderr.on('data', data => {
+        //     stdErr += `${data}`;
+        //     reject(stdErr);
+        // });
 
         newProcess.on('close', (code) => {
             out += `close code shell ', ${code}`
@@ -136,11 +134,6 @@ function gitCloneOrPullBranch(repoUrl, branch, repoLocalDirs) {
 }
 
 var app = express()
-app.use(githubMdw.verifyHmac)
-app.use(bodyParser.urlencoded({
-    extended: false
-}))
-app.use(bodyParser.json())
 
 
 app.post('/web-hook', function (req, res, err) {
