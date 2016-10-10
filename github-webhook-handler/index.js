@@ -70,42 +70,33 @@ function create(options) {
 
     if (events && events.indexOf(event) == -1)
       return hasError('X-Github-Event is not acceptable')
-    
+
     req;
     req.pipe(bl(function (err, data) {
-      
+
       if (err) {
         return hasError(err.message)
       }
-
-      var obj
-      if (sig) {
-        var computedSig = new Buffer(signBlob(options.secret, data))
-
-        if (!bufferEq(new Buffer(sig), computedSig))
-          return hasError('X-Hub-Signature does not match blob signature')
-      }
-      else
-        if (token) {
-          if (options.secret !== token)
-            return hasError('X-Gitlab-Token does not match')
+      // check gitlap secret key
+      if (token) {
+        if (options.secret !== token)
+          return hasError('X-Gitlab-Token does not match')
+      } else
+      // check gogs webhook secret key 
+      if (gogsSecret) {
+        if (options.secret !== gogsSecret) {
+          return hasError('X-Gogs-Secret does not match')
         }
-        else
-          if (gogsSecret) {
-            if (options.secret !== gogsSecret) {
-              return hasError('X-Gogs-Secret does not match')
-            }
-          }
-          else {
-            return hasError('missing options.secret')
-          }
+      } else {
+        return hasError('missing options.secret')
+      }
 
 
       try {
         obj = JSON.parse(data)
       } catch (e) {
-
-        //return hasError(e)
+        obj = req.body
+          //return hasError(e)
       }
 
       res.writeHead(200, {

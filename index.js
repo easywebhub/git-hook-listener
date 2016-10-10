@@ -6,12 +6,15 @@ const Promise = require('bluebird');
 const ChildProcess = require('child_process');
 const fs = require('fs');
 const fse = require('fs-extra');
-var express = require('express')
-var bodyParser = require('body-parser')
-
+var express = require('express');
+var bodyParser = require('body-parser');
+var githubMdw = require("./middlewares/github-signature");
 
 const createHandler = require('./github-webhook-handler/index.js');
+
 const config = require('./config.js');
+
+
 const handler = createHandler({
     path: config.hookPath,
     secret: config.secret
@@ -133,13 +136,14 @@ function gitCloneOrPullBranch(repoUrl, branch, repoLocalDirs) {
 }
 
 var app = express()
-
-app.use(bodyParser.urlencoded({ extended: false }))
+app.use(githubMdw.verifyHmac)
+app.use(bodyParser.urlencoded({
+    extended: false
+}))
 app.use(bodyParser.json())
 
 
 app.post('/web-hook', function (req, res, err) {
-    req;
     handler(req, res, function (err) {
         console.log(req.body);
         if (err) {
