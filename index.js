@@ -3,15 +3,14 @@
 const http = require('http');
 const path = require('path');
 const Promise = require('bluebird');
-const ChildProcess = require('child_process');
 const fs = require('fs');
 const fse = require('fs-extra');
-var express = require('express');
-var bodyParser = require('body-parser');
+const express = require('express');
+const bodyParser = require('body-parser');
 const createHandler = require('./github-webhook-handler/index.js');
-
+var spawnShell = require('./helpers/spawn');
 const config = require('./config.js');
-
+var GithubMng = require('./github.mng');
 
 const handler = createHandler({
     path: config.hookPath,
@@ -21,6 +20,7 @@ const handler = createHandler({
 process.on('uncaughtException', err => {
     console.log(err);
 });
+
 
 // gitlab payload https://gitlab.com/gitlab-org/gitlab-ce/blob/master/doc/web_hooks/web_hooks.md
 // github payload https://developer.github.com/v3/activity/events/types/#pushevent
@@ -65,42 +65,6 @@ function isFolderExists(localPath) {
     } catch (ex) {
         return false;
     }
-}
-
-function spawnShell(command, args, opts) {
-    // opts = opts || {};
-    return new Promise((resolve, reject) => {
-        let out = '';
-        let stdErr = '';
-
-        let env = process.env;
-        // bug ssl ca store not found
-        env.GIT_SSL_NO_VERIFY = true;
-
-        let newProcess = ChildProcess.spawn(command, args, {
-            env,
-            cwd: opts.cwd || {},
-            shell: true
-        });
-
-        newProcess.on('error', err => {
-            reject(err);
-        });
-
-        newProcess.stdout.on('data', data => {
-            out += `${data}`;
-        });
-
-        // newProcess.stderr.on('data', data => {
-        //     stdErr += `${data}`;
-        //     reject(stdErr);
-        // });
-
-        newProcess.on('close', (code) => {
-            out += `close code shell ', ${code}`
-            resolve(out);
-        });
-    });
 }
 
 function doGitCloneBranch(repoUrl, branch, repoLocalDirs) {
@@ -179,13 +143,23 @@ handler.on('push', event => {
     let dataPath = repoConfig.dataPath || '';
     if (!dataPath)
         dataPath = path.join(config.dataPath, repoKey);
+    let GH = new GithubMng({
+        folderPath: dataPath,
+        githubUrl: ' https://github.com/tungptvn/gogss.git'
+    });
+
 
     gitCloneOrPullBranch(
         repoConfig.repositoryUrl,
         repoConfig.branch,
         dataPath
     ).then(rs => {
-        console.log('END: ', rs)
+        console.log('END: ', rs);
+
+
+        GH.push().then(result => {
+            console.log('push to github: ', result);
+        });
     }).catch(ex => {
         console.log('git error', ex)
     });
