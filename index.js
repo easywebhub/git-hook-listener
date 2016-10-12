@@ -1,4 +1,4 @@
-'use strict';
+"use strict";
 
 const http = require('http');
 const path = require('path');
@@ -45,12 +45,12 @@ function getRepoKey(pushEvent) {
         let branch = getPushBranch(pushEvent);
         if (pushEvent.payload.project) {
 
-            nameSpace = `${pushEvent.payload.project['path_with_namespace']}`;
+            nameSpace = `${pushEvent.payload.project.path_with_namespace}`;
         } else {
 
-            nameSpace = `${pushEvent.payload.repository['full_name']}`;
+            nameSpace = `${pushEvent.payload.repository.full_name}`;
         }
-        let repoPath = Object.keys(config.repositories).filter(key => config.repositories[key].repositoryUrl.split('/').pop().split('.').shift()  == nameSpace.split('/').pop()   && config.repositories[key].branch === branch);
+        let repoPath = Object.keys(config.repositories).filter(key => config.repositories[key].repositoryUrl.split('/').pop().split('.').shift() == nameSpace.split('/').pop() && config.repositories[key].branch === branch);
         return repoPath.shift() || '';
     } catch (ex) {
         console.log('not supported push payload', pushEvent);
@@ -88,7 +88,7 @@ function spawnShell(command, args, opts) {
         });
 
         newProcess.stdout.on('data', data => {
-            out += `${data}`
+            out += `${data}`;
         });
 
         // newProcess.stderr.on('data', data => {
@@ -133,7 +133,7 @@ function gitCloneOrPullBranch(repoUrl, branch, repoLocalDirs) {
     return Promise.resolve(doGitCloneBranch(repoUrl, branch, repoLocalDirs));
 }
 
-var app = express()
+var app = express();
 
 
 app.post('/web-hook', function (req, res, err) {
@@ -144,7 +144,7 @@ app.post('/web-hook', function (req, res, err) {
         }
         res.statusCode = 404;
         res.end('no such location');
-    })
+    });
 });
 
 app.listen(config.port, function () {
@@ -154,7 +154,7 @@ app.listen(config.port, function () {
 
 handler.on('error', err => {
     console.error('Error:', err.message);
-})
+});
 
 handler.on('push', event => {
     console.log(`ON PUSH ${new Date()}`);
@@ -190,4 +190,4 @@ handler.on('push', event => {
         console.log('git error', ex)
     });
 
-})
+});
