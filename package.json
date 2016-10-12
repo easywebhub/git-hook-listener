@@ -17,5 +17,8 @@
     "fs-extra": "^0.30.0",
     "github-webhook-handler": "^0.6.0",
     "rimraf": "^2.5.4"
+  },
+  "devDependencies": {
+    "jshint": "^2.9.3"
   }
 }

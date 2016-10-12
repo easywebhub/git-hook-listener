@@ -1,0 +1,6 @@
+{
+    "node": true,
+    "esnext": true,
+    "strict": true, // forces es5 strict mode
+    "laxcomma": true // ignores leading commas
+}
