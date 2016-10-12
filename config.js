@@ -22,7 +22,8 @@ module.exports = {
         },
         'test': {
             repositoryUrl: 'http://git.easywebhub.com/tungptvn/test.git',
-            branch: 'master'
+            branch: 'master',
+            github: 'https://github.com/tungptvn/gogss.git'
         }
     }
 }
