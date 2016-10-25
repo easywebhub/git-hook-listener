@@ -50,7 +50,7 @@ function getRepoKey(pushEvent) {
             let repoName = config.repositories[key].repositoryUrl.split('/').pop().split('.').shift();
             return repoName == nameSpace.split('/').pop() && config.repositories[key].branch === branch
         });
-        return repoPath.shift() + '/' + branch || '';
+        return repoPath.shift() || '';
     } catch (ex) {
         console.log('not supported push payload', pushEvent);
         return '';
