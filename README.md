@@ -7,7 +7,7 @@
   + modify `port`, `secret`, `dataPath` on `config.js`
   + verify the operation with a sample repo
   
-### 2.Add a repo to 'push-to-deploy', see [more](#add-and-config-a-new-repository)
+### 2.Add a repo to 'push-to-deploy/:branch', see [more](#add-and-config-a-new-repository)
   + Add a Web Hook on the Setting of this repo and verify
     - e.g. http://192.168.1.1:4567/web-hook
   + Add new repository setting on `config.js` on deployed server
@@ -28,7 +28,7 @@ module.exports = {
     secret: 'bay gio da biet',
     dataPath: 'websites',
     repositories: {
-        'testGhPages': {
+        'testGhPages/gh-pages': {
             repositoryUrl: 'https://github.com/nemesisqp/test-gh2.git',
             branch: 'gh-pages',
             dataPath: 'otherPath' // optional

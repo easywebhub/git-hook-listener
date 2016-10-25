@@ -25,19 +25,15 @@ process.on('uncaughtException', err => {
 // gitlab payload https://gitlab.com/gitlab-org/gitlab-ce/blob/master/doc/web_hooks/web_hooks.md
 // github payload https://developer.github.com/v3/activity/events/types/#pushevent
 
-/*
- * getRepoKey(pushEvent)
- * key is github.com/:username/:projectName
- * @param {any} pushEvent
- * @returns path of repo or ||
- */
 function getPushBranch(event) {
     return event.payload.ref.split('/').pop();
 }
 
-/* *
- * @param {any} pushEvent
+/*
+ * getRepoKey(pushEvent)
+ * key is github.com/:username/:projectName/:branch
  * @returns a key of config.repositories
+ * @param {any} pushEvent
  */
 function getRepoKey(pushEvent) {
     try {
@@ -50,8 +46,11 @@ function getRepoKey(pushEvent) {
 
             nameSpace = `${pushEvent.payload.repository.full_name}`;
         }
-        let repoPath = Object.keys(config.repositories).filter(key => config.repositories[key].repositoryUrl.split('/').pop().split('.').shift() == nameSpace.split('/').pop() && config.repositories[key].branch === branch);
-        return repoPath.shift() || '';
+        let repoPath = Object.keys(config.repositories).filter(key => {
+            let repoName = config.repositories[key].repositoryUrl.split('/').pop().split('.').shift();
+            return repoName == nameSpace.split('/').pop() && config.repositories[key].branch === branch
+        });
+        return repoPath.shift() + '/' + branch || '';
     } catch (ex) {
         console.log('not supported push payload', pushEvent);
         return '';
