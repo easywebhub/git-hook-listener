@@ -71,8 +71,8 @@ function create(options) {
     var event = req.headers['x-github-event'] || req.headers['x-gitlab-event'];
     var id = req.headers['x-github-delivery'];
 
-    if (!sig)
-     return hasError('No X-Hub-Signature or X-Gitlab-Token found on request');
+    //if (!sig)
+    // return hasError('No X-Hub-Signature or X-Gitlab-Token found on request');
 
     if (!event)
       return hasError('No X-Github-Event or X-Gitlab-Event found on request');
@@ -90,19 +90,16 @@ function create(options) {
         return hasError(err.message);
       }
       var obj
-      var computedSig = new Buffer(signBlob(options.secret, data))
+      if (sig) {
+        var computedSig = new Buffer(signBlob(options.secret, data))
 
-      if (!bufferEq(new Buffer(sig), computedSig))
-        return hasError('X-Hub-Signature does not match blob signature');
-      else
-      // check gitlap secret key
-      if (token) {
+        if (!bufferEq(new Buffer(sig), computedSig))
+          return hasError('X-Hub-Signature does not match blob signature')
+      } else if (token) {
         if (options.secret !== token)
-          return hasError('X-Gitlab-Token does not match');
-      } else
-      // check gogs webhook secret key 
-      {
-        return hasError('missing options.secret');
+          return hasError('X-Gitlab-Token does not match')
+      } else {
+        return hasError('missing options.secret')
       }
 
 
