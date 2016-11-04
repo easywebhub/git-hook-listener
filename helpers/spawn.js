@@ -23,10 +23,15 @@ function spawnShell(command, args, options) {
         });
 
         newProcess.stdout.on('data', data => {
-            out += `${data}`;
+            out += `${data}`.trim();
         });
+
+        newProcess.stderr.on('data', data => {
+            stdErr += `${data}`.trim();
+        });
+
         newProcess.on('close', (code) => {
-            out += `close code shell ', ${code}`
+            out += `close code shell code ${code}, stderr ${stdErr}`;
             resolve(out);
         });
     });
