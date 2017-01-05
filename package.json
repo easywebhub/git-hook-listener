@@ -1,24 +1,22 @@
 {
-  "name": "git-hook-listener",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "author": "",
-  "license": "ISC",
-  "dependencies": {
-    "bl": "^1.1.2",
-    "bluebird": "^3.4.3",
-    "body-parser": "^1.15.2",
-    "buffer-equal-constant-time": "^1.0.1",
-    "express": "^4.14.0",
-    "fs-extra": "^0.30.0",
-    "github-webhook-handler": "^0.6.0",
-    "rimraf": "^2.5.4"
-  },
-  "devDependencies": {
-    "jshint": "^2.9.3"
-  }
+    "name"        : "git-hook-listener",
+    "version"     : "1.0.0",
+    "description" : "",
+    "main"        : "index.js",
+    "scripts"     : {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "repository"  : {
+        "type": "git",
+        "url" : "git@gitlab.vienthonga.com:nhudinhquocphuong/git-hook-listener.git"
+    },
+    "author"      : "",
+    "license"     : "ISC",
+    "dependencies": {
+        "bl"      : "^1.1.2",
+        "bluebird": "^3.4.6",
+        "fs-extra": "^1.0.0",
+        "lodash"  : "^4.16.6",
+        "restify" : "^4.2.0"
+    }
 }
