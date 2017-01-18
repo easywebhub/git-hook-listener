@@ -8,10 +8,11 @@ const Url = require('url');
 const SpawnShell = require('./spawn-shell');
 const _ = require('lodash');
 const ERROR = require('./error-code');
+const argv = require('minimist')(process.argv.slice(2));
 
 const DEBUG = /--debug/.test(process.argv);
 
-const CONFIG_FILE = './config.js';
+const CONFIG_FILE = argv.config || './config.js';
 
 if (DEBUG) {
     console.debug = console.log;
