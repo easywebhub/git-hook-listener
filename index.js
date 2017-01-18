@@ -52,14 +52,14 @@ try {
 
 // create git hook handler
 const gitHookHandler = new GitHookHandler({
-    path:   config.hookPath,
+    path: config.hookPath,
     secret: config.secret
 });
 
 // auto hot reload config, use old config if new config file is invalid
 Fs.watch('config.js', {
     persistent: true,
-    recursive:  false
+    recursive: false
 }, (eventType, filename) => {
     // console.log('eventType', eventType, filename);
     if (eventType !== 'change') return;
@@ -106,32 +106,32 @@ function getPushEventInfo(event) {
             cloneUrl = event.payload.repository['url'];
         }
     }
-    
+
     let info = getRepoInfoFromUrl(cloneUrl);
     info.branch = branch;
     return info;
 }
 
 function getRepoInfoFromUrl(url) {
-	if (url.startsWith('git@'))
-		url = 'ssh://' + url;
-		
+    if (url.startsWith('git@'))
+        url = 'ssh://' + url;
+
     let uri = Url.parse(url);
     if (uri.pathname.endsWith('.git')) {
         uri.pathname = uri.pathname.slice(0, uri.pathname.length - 4);
-    }    
-    
+    }
+
     let parts = uri.pathname.split('/');
     if (parts.length != 3)
         return null;
     let ret = {
-        host:    uri.host,
-        group:   parts[1],
+        host: uri.host,
+        group: parts[1],
         project: parts[2],
     };
-    
+
     if (ret.group.startsWith(':'))
-		ret.group = ret.group.slice(1);
+        ret.group = ret.group.slice(1);
     return ret;
 }
 
@@ -173,7 +173,7 @@ function doGitCloneBranch(repoUrl, branch, repoLocalDirs, args) {
     }
 }
 
-const gitCloneOrPullBranch = Promise.coroutine(function*(repoUrl, branch, repoLocalDirs, args) {
+const gitCloneOrPullBranch = Promise.coroutine(function* (repoUrl, branch, repoLocalDirs, args) {
     if (isFolderExists(repoLocalDirs) === false)
         Fs.mkdirpSync(repoLocalDirs);
 
@@ -184,7 +184,7 @@ gitHookHandler.on('error', err => {
     console.error('Error:', err.message);
 });
 
-gitHookHandler.on('push', Promise.coroutine(function*(event) {
+gitHookHandler.on('push', Promise.coroutine(function* (event) {
     // console.debug(`got webhook event push`, event);
 
     let eventInfo = getPushEventInfo(event);
@@ -204,7 +204,7 @@ gitHookHandler.on('push', Promise.coroutine(function*(event) {
         console.info(`no config found for this event`, eventInfo);
     }
 
-    yield Promise.mapSeries(matchRepositories, Promise.coroutine(function*(repository) {
+    yield Promise.mapSeries(matchRepositories, Promise.coroutine(function* (repository) {
         try {
             let cloneBranch = repository.cloneBranch;
             if (!cloneBranch) cloneBranch = repository.branch;
@@ -215,7 +215,7 @@ gitHookHandler.on('push', Promise.coroutine(function*(event) {
             if (repository.then) {
                 let actions;
                 // normalize actions
-                if (typeof(repository.then) === 'object') {
+                if (typeof (repository.then) === 'object') {
                     if (Array.isArray(repository.then))
                         actions = repository.then;
                     else
@@ -225,17 +225,21 @@ gitHookHandler.on('push', Promise.coroutine(function*(event) {
                 }
 
                 if (actions && actions.length > 0) {
-                    yield Promise.mapSeries(actions, Promise.coroutine(function*(action) {
-                        console.info('run action', action);
-                        let output;
-                        if (action.command && action.args && action.options) {
-                            output = yield SpawnShell(action.command, action.args, action.options);
-                        } else if (action.command && action.args) {
-                            output = yield SpawnShell(action.command, action.args);
-                        } else if (action.command) {
-                            output = yield SpawnShell(action.command);
+                    yield Promise.mapSeries(actions, Promise.coroutine(function* (action) {
+                        console.info('run action', 'command', action.command, 'args', action.args);
+                        try {
+                            let output;
+                            if (action.command && action.args && action.options) {
+                                output = yield SpawnShell(action.command, action.args, action.options);
+                            } else if (action.command && action.args) {
+                                output = yield SpawnShell(action.command, action.args);
+                            } else if (action.command) {
+                                output = yield SpawnShell(action.command);
+                            }
+                            console.info('action output', output);
+                        } catch (ex) {
+                            console.error('action error', ex);
                         }
-                        console.info('action output', output);
                     }));
                 }
             }
@@ -246,7 +250,7 @@ gitHookHandler.on('push', Promise.coroutine(function*(event) {
 }));
 
 const server = Restify.createServer({
-    name:    AppInfo.name,
+    name: AppInfo.name,
     version: AppInfo.version
 });
 
@@ -266,9 +270,9 @@ server.post(config.hookPath, (req, res, next) => {
 function responseArraySuccess(res, data, headers) {
     headers = headers || {};
     res.json(200, {
-        'data':            data,
+        'data': data,
         "recordsFiltered": data.length,
-        "recordsTotal":    data.length
+        "recordsTotal": data.length
     }, headers);
 }
 
@@ -278,18 +282,18 @@ function responseSuccess(res, data, headers) {
 }
 
 function responseError(res, code, message) {
-    if (typeof(code) === 'object') {
+    if (typeof (code) === 'object') {
         res.json(code.code, {
             'error': {
                 'statusCode': code.code,
-                'message':    code.message
+                'message': code.message
             }
         });
     } else {
         res.json(code, {
             'error': {
                 'statusCode': code,
-                'message':    message
+                'message': message
             }
         });
     }
