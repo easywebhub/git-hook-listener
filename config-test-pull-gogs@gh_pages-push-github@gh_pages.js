@@ -14,6 +14,7 @@ module.exports = {
             "path": "repositories/test-pull",
             "args": [],
             "then": [
+				// this command will only work first time, if change url use set-url command
                 {
                     "command": "git",
                     "args": [
@@ -21,6 +22,7 @@ module.exports = {
                     ],
                     "options": {env: process.env, cwd: "repositories/test-pull"}
                 },
+                // push to gh-pages github remote
                 {
                     "command": "git",
                     "args": [
