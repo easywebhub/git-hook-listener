@@ -18,7 +18,7 @@ module.exports = {
                 {
                     "command": "git",
                     "args": [
-                        "remote", "add", "github", "https://thayUserNameVoDay:thayPassVoDay@github.com/nemesisqp/test-pull-dst.git"
+                        "remote", "add", "github", "https://nemesisqp:77d34a3e7ddfcbc3cd5cb5729ead745909d0c342@github.com/nemesisqp/test-pull-dst.git"
                     ],
                     "options": {env: process.env, cwd: "repositories/test-pull"}
                 },
