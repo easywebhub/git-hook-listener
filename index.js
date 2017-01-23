@@ -340,18 +340,38 @@ function checkConfigRepoIndex(req, res) {
     return true;
 }
 
+// remove env from object
+function cleanUpResponse(obj) {
+    try {
+        var result;
+        if (obj.repositories) {
+            // return array of repository
+            result = _.cloneDeep(obj.repositories);
+            result.forEach(function (repo) {
+                console.log(22);
+                repo.then.forEach(function (action) {
+                    console.log(33);
+                    try { delete action.options.env; } catch (_) { }
+                });
+            });
+        } else if (obj.then) {
+            // return a repository
+            result = _.cloneDeep(obj);
+            result.then.forEach(function (action) {
+                try { delete action.options.env; } catch (_) { }
+            });
+        }
+        return result;
+    } catch (ex) {
+        return obj;
+    }
+}
+
 // get repositories config list
 server.get('/repositories', (req, res) => {
     if (!checkAuth(req, res)) return;
-    // remove options.env
-    try {
-        config.repositories.forEach(function(repo){
-            config.repositories[index].then.forEach(function(action){
-                delete action.options.env;
-            });
-        });
-    } catch(ex){}
-    return responseArraySuccess(res, config.repositories);
+    var result = cleanUpResponse(config);
+    return responseArraySuccess(res, result);
 });
 
 // get single repository
@@ -361,14 +381,8 @@ server.get('/repositories/:index', (req, res) => {
         return;
     let index = parseInt(req.params.index);
 
-    // remove options.env
-    try {
-        config.repositories[index].then.forEach(function(action){
-            delete action.options.env;
-        })
-    } catch(ex){}
-    
-    return responseSuccess(res, config.repositories[index]);
+    let result = cleanUpResponse(config.repositories[index]);
+    return responseSuccess(res, result);
 });
 
 
@@ -388,7 +402,8 @@ server.post('/repositories', (req, res) => {
             config.repositories.push(newRepoConfig);
             // TODO temporary disable hot reload ?
             saveConfig();
-            return responseSuccess(res, newRepoConfig);
+            let result = cleanUpResponse(newRepoConfig);
+            return responseSuccess(res, result);
         } catch (error) {
             responseError(res, ERROR.INTERNAL_ERROR.code, error.message);
         }
@@ -413,10 +428,11 @@ server.patch('/repositories/:index', (req, res) => {
             let newRepoConfig = JSON.parse(repoConfigJson);
             // TODO validate new config
             // merge config
-            config.repositories[index] = _.merge({}, config.repositories[index], newRepoConfig);
+            config.repositories[index] = _.assign({}, config.repositories[index], newRepoConfig);
             // TODO temporary disable hot reload ?
             saveConfig();
-            return responseSuccess(res, config.repositories[index]);
+            let result = cleanUpResponse(config.repositories[index]);
+            return responseSuccess(res, result);
         } catch (error) {
             responseError(res, ERROR.INTERNAL_ERROR.code, error.message);
         }
@@ -433,8 +449,8 @@ server.del('/repositories/:index', (req, res) => {
     let removedList = config.repositories.splice(index, 1);
     // TODO temporary disable hot reload ?
     saveConfig();
-
-    responseSuccess(res, removedList[0]);
+    let result = cleanUpResponse(removedList[0]);
+    responseSuccess(res, result);
 });
 
 // remove all repository
