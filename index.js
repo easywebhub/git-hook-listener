@@ -229,14 +229,14 @@ gitHookHandler.on('push', Promise.coroutine(function* (event) {
                         console.info('run action', 'command', action.command, 'args', action.args);
                         try {
                             let output;
-                            if (action.command && action.args && action.options) {
+                            action.args = action.args || [];
+                            action.options = action.options || {};
+                            action.options.env = process.env;
+
+                            if (action.command) {
                                 output = yield SpawnShell(action.command, action.args, action.options);
-                            } else if (action.command && action.args) {
-                                output = yield SpawnShell(action.command, action.args);
-                            } else if (action.command) {
-                                output = yield SpawnShell(action.command);
+                                console.info('action output', output);
                             }
-                            console.info('action output', output);
                         } catch (ex) {
                             console.error('action error', ex);
                         }
@@ -343,6 +343,14 @@ function checkConfigRepoIndex(req, res) {
 // get repositories config list
 server.get('/repositories', (req, res) => {
     if (!checkAuth(req, res)) return;
+    // remove options.env
+    try {
+        config.repositories.forEach(function(repo){
+            config.repositories[index].then.forEach(function(action){
+                delete action.options.env;
+            });
+        });
+    } catch(ex){}
     return responseArraySuccess(res, config.repositories);
 });
 
@@ -353,6 +361,13 @@ server.get('/repositories/:index', (req, res) => {
         return;
     let index = parseInt(req.params.index);
 
+    // remove options.env
+    try {
+        config.repositories[index].then.forEach(function(action){
+            delete action.options.env;
+        })
+    } catch(ex){}
+    
     return responseSuccess(res, config.repositories[index]);
 });
 
