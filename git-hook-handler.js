@@ -227,12 +227,12 @@ class GitHookHandler extends EventEmitter {
 
     handle(req, res, next) {
         let self = this;
-        if (req.headers['x-github-event']) {
-            handleGithub(self, req, res, next);
+        if (req.headers['x-gogs-event']) {
+            handleGogs(self, req, res, next);
         } else if (req.headers['x-gitlab-event']) {
             handleGitlab(self, req, res, next);
-        } else if (req.headers['x-gogs-event']) {
-            handleGogs(self, req, res, next);
+        } else if (req.headers['x-github-event']) {
+            handleGithub(self, req, res, next);
         } else {
             console.info('unsupported web hook event');
             next(new Error('unsupported web hook event'));
