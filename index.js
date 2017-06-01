@@ -157,7 +157,7 @@ function doGitCloneBranch(repoUrl, branch, repoLocalDirs, args) {
     if (isFolderExists(gitFolderPath)) {
         // if exists call git pull
         console.debug('pull', repoUrl, branch, 'to', repoLocalDir);
-        return SpawnShell('git', ['pull'], opts);
+        return SpawnShell('git', ['pull', 'origin', branch], opts);
     } else {
         // if .git folder not exists remove exists folder and clone repos
         Fs.removeSync(repoLocalDir);
